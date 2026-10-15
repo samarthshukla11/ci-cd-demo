@@ -1,48 +1,36 @@
-name: Node.js CI
-# This gives your workflow a name.
-# GitHub displays it in the Actions tab.
+name: Node.js CI and Docker Publish
+
 on:
   push:
     branches: [main]
 
   pull_request:
     branches: [main]
-# This specifies when the workflow should run.
-# Here, it runs when code is pushed to main.
-# The additional pull_request configuration makes it run when a pull request targets main.
+
 jobs:
   test:
-  # A workflow contains one or more jobs.
-# Here, we have a job named test
     runs-on: ubuntu-latest
-# GitHub runs the job on a hosted Ubuntu runner.
-# Think of a runner as a temporary machine that executes your workflow.
+
     steps:
-      - name: Download repository code
+      - name: Checkout repository
         uses: actions/checkout@v4
-#         Downloads your repository's code into the runner's workspace.
-# Without the code, the runner wouldn't have your project files to test.
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-# Configures Node.js on the runner.
-# We specify version 22 because that's the version this example uses.
+
       - name: Install dependencies
         run: npm ci
-# Installs dependencies using the lockfile.
-# npm ci is particularly useful in CI because it performs a clean, reproducible installation based on package-lock.json.
-# Make sure you commit package-lock.json to GitHub.
-      - name: Run tests
+
+      - name: Run automated tests
         run: npm test
 
       - name: Build Docker image
         run: docker build -t ci-cd-demo .
 
-
-publish:
+  publish:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
